@@ -583,7 +583,7 @@ jobs:
         run: |
           curl -fsSL https://downloads.rclone.org/rclone-current-linux-amd64.zip -o rclone.zip && unzip -jq rclone.zip '*/rclone' && chmod +x rclone
           # One JSON object per line, newest last. Served at
-          # https://pkgs.omarchy.org/publish-log.jsonl
+          # https://pkgs.omashiri.com/publish-log.jsonl
           ./rclone copy R2:omarchy-pkgs/publish-log.jsonl . --s3-no-head 2>/dev/null || : > publish-log.jsonl
           jq -c . publish-record.json >> publish-log.jsonl
           ./rclone copyto publish-log.jsonl R2:omarchy-pkgs/publish-log.jsonl --s3-no-head

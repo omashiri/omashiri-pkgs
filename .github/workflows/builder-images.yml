@@ -59,7 +59,7 @@ jobs:
         run: tests/build-isolation.sh
 
   refresh:
-    if: github.repository == 'omacom/omarchy-pkgs' && github.ref == 'refs/heads/master'
+    if: github.repository == 'omashiri/omashiri-pkgs' && github.ref == 'refs/heads/master'
     strategy:
       fail-fast: false
       matrix:

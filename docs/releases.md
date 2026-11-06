@@ -36,7 +36,7 @@ cause and re-run it. To build the current pins again without cutting new
 ones, run **Build release candidate** from the Actions tab, or:
 
 ```bash
-gh workflow run release-rc.yml -R omacom/omarchy-pkgs
+gh workflow run release-rc.yml -R omashiri/omashiri-pkgs
 ```
 
 There are two kinds of train, and `start` is the only place a version is
@@ -101,13 +101,13 @@ Carry what has landed on edge into rc, so RC testing runs against the
 package set stable users will get:
 
 ```bash
-gh workflow run promote.yml -R omacom/omarchy-pkgs -f direction="edge -> rc"
+gh workflow run promote.yml -R omashiri/omashiri-pkgs -f direction="edge -> rc"
 ```
 
 Ship the tested rc channel to stable, the release pair included:
 
 ```bash
-gh workflow run promote.yml -R omacom/omarchy-pkgs -f direction="rc -> stable"
+gh workflow run promote.yml -R omashiri/omashiri-pkgs -f direction="rc -> stable"
 ```
 
 Add `-f dry_run=true` to see the plan first.
@@ -174,7 +174,7 @@ bin/omarchy-pkgs self-test               # Version normalization + ordering test
   the exact tested packages move forward:
 
 ```bash
-gh workflow run promote.yml -R omacom/omarchy-pkgs -f direction="rc -> stable"
+gh workflow run promote.yml -R omashiri/omashiri-pkgs -f direction="rc -> stable"
 ```
 
 Neither package is on the `fast` ring, and `bin/omarchy-pkgs` never touches
