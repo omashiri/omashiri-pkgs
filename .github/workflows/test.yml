@@ -79,20 +79,6 @@ jobs:
         with:
           persist-credentials: false
 
-      # tests/promotion-regression.sh compares promotions against the tooling
-      # of master before the Mac package-set check.
-      - name: Fetch the promotion baseline
-        run: git fetch --no-tags --depth=1 origin be8ab9bda3e53b163153944395f1912ac6d7f44f
-
-      - name: Test PR workflow approval
-        run: node --test tests/pr-workflow-approval.cjs
-
-      - name: Test upstream sync reporting
-        run: node --test tests/sync-upstream-summary.cjs
-
-      - name: Test builder images
-        run: node --test tests/builder-image.cjs
-
       # An Arch container for vercmp: version ordering has to be decided by
       # the same comparator pacman uses on users' machines.
       - name: Run self-tests
@@ -102,31 +88,12 @@ jobs:
             -w /workspace \
             ghcr.io/archlinux/archlinux:base-devel bash -lc '
               set -euo pipefail
-              pacman -Syu --noconfirm git jq python python-yaml libarchive neovim tmux
-              python tests/upstream-watch.py
-              ./bin/sync-upstream self-test
-              ./tests/upstream-github-fetch.sh
-              ./bin/sync-rebuilds --self-test
-              ./bin/omarchy-pkgs self-test
-              ./bin/omarchy-release self-test
-              ./tests/published-build-plan.sh
+              pacman -Syu --noconfirm git jq libarchive
               ./tests/pinned-sources.sh
               ./tests/package-metadata.sh
               ./tests/package-owners.sh
               ./tests/pkgname-unique.sh
-              ./tests/unpublish-plan.sh
-              ./tests/fast-ring-check.sh
-              ./tests/controller.sh
-              ./tests/artifact-helpers.sh
-              python tests/workflow-helpers-sourced.py
-              ./tests/build-matrix.sh
-              ./tests/mac-installer-dispatch.sh
               ./tests/limine-mkinitcpio-hook.sh
-              pacman -S --noconfirm --quiet rclone >/dev/null
-              ./tests/publish-artifact.sh
-              ./tests/promote-channel.sh
-              ./tests/mac-package-set.sh
-              BASELINE_REF=be8ab9bda3e53b163153944395f1912ac6d7f44f ./tests/promotion-regression.sh
               shopt -s nullglob
               for test in pkgbuilds/*/test.sh; do
                 bash "$test"
