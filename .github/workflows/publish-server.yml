@@ -13,7 +13,7 @@ concurrency: publish-server
 
 jobs:
   build-publish:
-    runs-on: docker
+    runs-on: self-hosted
     container: archlinux:latest
     steps:
       - name: Prepare builder
