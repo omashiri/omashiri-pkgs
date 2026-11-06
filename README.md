@@ -663,3 +663,17 @@ Repository secrets: `PKGS_BOT_TOKEN`, `BASECAMP_CHATBOT_URL`.
 - [docs/upstream-sources.md](docs/upstream-sources.md): declaring upstream releases
 - [docs/rebuild-triggers.md](docs/rebuild-triggers.md): rebuilding when a dependency moves
 - [docs/releases.md](docs/releases.md): cutting a release, versioning rules
+
+## Using the omashiri repo
+
+Packages are published as assets of the rolling `edge` release by
+`.github/workflows/publish-release.yml`. Add to `/etc/pacman.conf`:
+
+```
+[omashiri]
+SigLevel = Optional TrustAll
+Server = https://github.com/omashiri/omashiri-pkgs/releases/download/edge
+```
+
+Set `SigLevel = Required` once the `GPG_PRIVATE_KEY` secret is set and the
+matching public key is shipped in an `omashiri-keyring` package.
