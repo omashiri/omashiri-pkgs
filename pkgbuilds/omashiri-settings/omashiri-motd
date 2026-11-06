@@ -1,0 +1,81 @@
+#!/bin/bash
+# omashiri-motd — login banner for Omashiri, the AI server distro
+# Install: /usr/bin/omashiri-motd  (chmod +x)
+# Hook:    /etc/profile.d/omashiri-motd.sh
+# Opt out per user: touch ~/.hushlogin
+
+set -u
+
+# --- palette (truecolor, falls back to 256 / plain) ---------------------------
+if [[ -t 1 && "${NO_COLOR:-}" == "" ]]; then
+  if [[ "${COLORTERM:-}" == *truecolor* || "${COLORTERM:-}" == *24bit* ]]; then
+    INK=$'\e[38;2;236;234;228m'; AMB=$'\e[38;2;255;178;36m'; DIM=$'\e[38;2;154;160;166m'
+  else
+    INK=$'\e[38;5;255m';           AMB=$'\e[38;5;214m';         DIM=$'\e[38;5;247m'
+  fi
+  B=$'\e[1m'; R=$'\e[0m'
+else
+  INK=""; AMB=""; DIM=""; B=""; R=""
+fi
+
+# --- wordmark -----------------------------------------------------------------
+cat <<ART
+${INK} ██████╗ ███╗   ███╗ █████╗ ███████╗██╗  ██╗██╗██████╗ ██╗
+██╔═══██╗████╗ ████║██╔══██╗██╔════╝██║  ██║██║██╔══██╗██║
+██║   ██║██╔████╔██║███████║███████╗███████║██║██████╔╝██║
+██║   ██║██║╚██╔╝██║██╔══██║╚════██║██╔══██║██║██╔══██╗██║
+╚██████╔╝██║ ╚═╝ ██║██║  ██║███████║██║  ██║██║██║  ██║██║ ${AMB}███${INK}
+ ╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚═╝${R}
+${DIM}  the AI server distro${R}
+
+ART
+
+# --- facts --------------------------------------------------------------------
+row() { printf "  ${DIM}%-9s${R} ${INK}%s${R}\n" "$1" "$2"; }
+
+host=$(uname -n)
+kern=$(uname -r)
+up=$(uptime -p 2>/dev/null | sed 's/^up //')
+load=$(cut -d' ' -f1-3 /proc/loadavg)
+cpus=$(nproc 2>/dev/null)
+mem=$(free -h 2>/dev/null | awk '/^Mem:/{print $3" / "$2}')
+disk=$(df -h / 2>/dev/null | awk 'NR==2{print $3" / "$2" ("$5")"}')
+ip4=$(ip -4 -o addr show scope global 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | head -n2 | paste -sd' ')
+
+row host   "$host"
+row kernel "$kern"
+row uptime "${up:-n/a}"
+row load   "$load  ${DIM}(${cpus} cpu)${R}"
+row memory "${mem:-n/a}"
+row disk   "${disk:-n/a}"
+[[ -n "$ip4" ]] && row ipv4 "$ip4"
+
+# GPUs, if any
+if command -v nvidia-smi >/dev/null 2>&1; then
+  while IFS=, read -r idx name util used total temp; do
+    row "gpu$idx" "$(echo "$name" | xargs)  ${util// /}% · ${used// /}/${total// /} MiB · ${temp// /}°C"
+  done < <(timeout 3 nvidia-smi --query-gpu=index,name,utilization.gpu,memory.used,memory.total,temperature.gpu \
+             --format=csv,noheader,nounits 2>/dev/null)
+elif command -v rocm-smi >/dev/null 2>&1; then
+  row gpu "$(timeout 3 rocm-smi --showproductname 2>/dev/null | awk -F': ' '/Card series/{print $2; exit}')"
+fi
+
+# failed units are the thing you actually want to see at login
+if units=$(timeout 3 systemctl --failed --no-legend --plain 2>/dev/null); then
+  failed=$(printf '%s\n' "$units" | awk 'NF { count++ } END { print count+0 }')
+  if (( failed > 0 )); then
+    row units "${AMB}${B}${failed} failed${R}  ${DIM}systemctl --failed${R}"
+  else
+    row units "all green"
+  fi
+else
+  row units "unavailable"
+fi
+
+# --- footer -------------------------------------------------------------------
+echo
+if (( RANDOM % 20 == 0 )); then
+  printf "  %s尻 — we've got your back(end).%s\n\n" "$DIM" "$R"
+else
+  printf '  %shush this banner: %stouch ~/.hushlogin%s\n\n' "$DIM" "$INK" "$R"
+fi

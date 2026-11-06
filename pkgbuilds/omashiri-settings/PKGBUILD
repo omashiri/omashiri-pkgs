@@ -1,11 +1,11 @@
 pkgname=omashiri-settings
 pkgver=0.1.0
-pkgrel=1
+pkgrel=2
 pkgdesc='Omashiri headless server defaults: sysctl, journald, zram, earlyoom, snapper, motd'
 arch=('any')
 url='https://github.com/omashiri/omashiri'
 license=('MIT')
-depends=('systemd' 'zram-generator' 'earlyoom' 'snapper')
+depends=('systemd' 'zram-generator' 'earlyoom' 'snapper' 'procps-ng' 'iproute2')
 backup=(
   etc/sysctl.d/99-omashiri.conf
   etc/systemd/journald.conf.d/10-omashiri.conf
@@ -13,6 +13,7 @@ backup=(
   etc/systemd/system/earlyoom.service.d/10-omashiri.conf
   etc/snapper/configs/root
   etc/motd
+  etc/profile.d/omashiri-motd.sh
 )
 source=(
   99-omashiri.conf
@@ -22,6 +23,8 @@ source=(
   snapper-root
   snapper-conf.d
   motd
+  omashiri-motd
+  omashiri-motd.sh
 )
 sha256sums=(
   'dc7c0163fc583839abce11d218e2a8cea0c1391a82b8a572fcc95e2f4efda1e2'
@@ -30,7 +33,9 @@ sha256sums=(
   'd32796f836fcdde7e7bb78af7f5786b63240b1e83fc0610b04f859525cb4fcbc'
   '9539e874c6343145dcd6c1960e4aa7334bb296deee69173b5629e88c11e87c56'
   '7184eeae54fc2e5701653513e2587ce02c5848ec7e38593838d1eea417970601'
-  'e6ad547b9449c31223e4409a7ea046d64c898a8fbfdc018a9b57013388bfde9c'
+  'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+  '5d476ec8851ccb7adbb2d9443074dc0307d24154b3d0c1c821121621cbf7799f'
+  '416741c48a8ec4781471121b0d222adbc00102c48e9ca5d2dc432a57ca0ffb07'
 )
 
 package() {
@@ -41,4 +46,6 @@ package() {
   install -Dm640 snapper-root "$pkgdir/etc/snapper/configs/root"
   install -Dm644 snapper-conf.d "$pkgdir/etc/conf.d/snapper"
   install -Dm644 motd "$pkgdir/etc/motd"
+  install -Dm755 omashiri-motd "$pkgdir/usr/bin/omashiri-motd"
+  install -Dm644 omashiri-motd.sh "$pkgdir/etc/profile.d/omashiri-motd.sh"
 }
