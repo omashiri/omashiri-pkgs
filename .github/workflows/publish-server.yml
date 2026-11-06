@@ -3,7 +3,7 @@ name: Publish to pkg.omashiri.com
 on:
   push:
     branches: [main]
-    paths: [pkgbuilds/**]
+    paths: [pkgbuilds/**, scripts/**]
   workflow_dispatch:
 
 permissions:
@@ -12,20 +12,37 @@ permissions:
 concurrency: publish-server
 
 jobs:
-  publish:
-    runs-on: [self-hosted, linux]
+  build-publish:
+    runs-on: docker
+    container: archlinux:latest
     steps:
+      - name: Prepare builder
+        run: |
+          pacman -Syu --noconfirm base-devel git openssh rsync nodejs gnupg
+          useradd -m builder
+          echo 'builder ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder
+
       - uses: actions/checkout@v4
+
       - name: Build packages
         run: |
-          out=$(mktemp -d)
-          echo "OUT=$out" >> "$GITHUB_ENV"
-          for dir in pkgbuilds/*/; do
-            grep -qE "^arch=.*(x86_64|any)" "$dir/PKGBUILD" || continue
-            (cd "$dir" && PKGDEST="$out" makepkg -sfc --noconfirm --skippgpcheck)
+          mkdir -p /out && chown builder /out
+          chown -R builder .
+          for d in pkgbuilds/*/; do
+            grep -qE '^arch=.*(x86_64|any)' "$d/PKGBUILD" || continue
+            (cd "$d" && sudo -u builder env PKGDEST=/out makepkg -s --noconfirm --clean --skippgpcheck)
           done
-      - name: Sign and publish
+
+      - name: Publish
         env:
           REMOTE: ${{ vars.PKG_REMOTE }}
-          GPG_KEY_ID: ${{ vars.GPG_KEY_ID }}
-        run: scripts/publish.sh "$OUT"
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          printf '%s\n' "$GPG_SIGNING_KEY" | gpg --batch --import
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+          host=${REMOTE#*@}; host=${host%%:*}
+          ssh-keyscan "$host" >> ~/.ssh/known_hosts
+          scripts/publish.sh /out

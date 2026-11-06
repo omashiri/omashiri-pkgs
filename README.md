@@ -32,15 +32,16 @@ Checks: `tests/*.sh`, also run by `.github/workflows/test.yml` on pull requests.
 
 ## Publishing
 
-`.github/workflows/publish-server.yml` runs on a self-hosted Linux runner
-(Arch, with `base-devel`, `rsync` and the signing key in its GPG keyring) on
-pushes to `main` that touch `pkgbuilds/`. It builds every x86_64 or `any`
-package and calls `scripts/publish.sh`, which signs the packages, updates and
-signs the db, and uploads packages before the db.
+`.github/workflows/publish-server.yml` runs on pushes to `main` that touch
+`pkgbuilds/` or `scripts/`, on the runner labelled `docker`, inside an
+`archlinux` container. It builds every x86_64 or `any` package and calls
+`scripts/publish.sh`, which signs the packages, updates and signs the db, and
+uploads packages before the db.
 
-Repo variables: `PKG_REMOTE` (for example
-`pkgdeploy@host:/srv/omashiri-repo/omashiri/os/x86_64`, or a local path if the
-runner is the server) and `GPG_KEY_ID`.
+Repo variable: `PKG_REMOTE`, for example
+`pkgdeploy@host:/srv/omashiri-repo/omashiri/os/x86_64`.
+Repo secrets: `GPG_SIGNING_KEY` (armored private key), `GPG_KEY_ID`,
+`DEPLOY_SSH_KEY` (its public half in `pkgdeploy`'s `authorized_keys`).
 
 Serve `/srv/omashiri-repo` as `pkg.omashiri.com` with any static file server,
 for example Caddy `file_server`.
