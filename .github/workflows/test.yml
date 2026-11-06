@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-isolation:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,7 +29,7 @@ jobs:
   # The split-makedepends rule is printed but never gates: it fires on any
   # split package whose parts depend on each other (19 of the 23).
   recipes:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -71,7 +71,7 @@ jobs:
               exit $status'
 
   self-tests:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
