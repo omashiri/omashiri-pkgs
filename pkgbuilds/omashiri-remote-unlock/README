@@ -1,0 +1,13 @@
+omashiri-remote-unlock
+======================
+
+Unlock a LUKS root over SSH at boot.
+
+1. Put the public keys allowed to unlock in /etc/dropbear/root_key
+   (authorized_keys format, one per line, mode 0600).
+2. Set the initramfs network in the kernel command line, e.g.
+   ip=dhcp   or   ip=192.168.1.10::192.168.1.1:255.255.255.0::eth0:none
+3. Rebuild the initramfs: mkinitcpio -P
+4. At boot: ssh root@<host>, then the passphrase prompt appears.
+
+The hooks come from /etc/mkinitcpio.conf.d/50-omashiri-remote-unlock.conf.
