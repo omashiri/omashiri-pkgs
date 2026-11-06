@@ -44,6 +44,8 @@ jobs:
           printf '%s\n' "$GPG_SIGNING_KEY" | gpg --batch --import
           install -d -m 700 ~/.ssh
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan "$SERVER" >> ~/.ssh/known_hosts
+          SERVER=$(printf '%s' "$SERVER" | tr -d '[:space:]')
+          ssh-keyscan -T 15 "$SERVER" >> ~/.ssh/known_hosts
+          [ -s ~/.ssh/known_hosts ] || { echo "::error::no SSH host key from the REMOTE secret's host on port 22"; exit 1; }
           export REMOTE="pkgdeploy@$SERVER:/srv/omashiri-repo/omashiri/os/x86_64"
           scripts/publish.sh /out
