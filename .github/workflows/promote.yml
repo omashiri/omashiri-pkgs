@@ -23,7 +23,7 @@ name: Promote channel
 #
 # Every run writes its plan to the step summary and keeps the full record as
 # an artifact. A run that publishes appends it to the publish log
-# (https://pkgs.omarchy.org/publish-log.jsonl) with "kind": "promote".
+# (https://pkgs.omashiri.com/publish-log.jsonl) with "kind": "promote".
 
 on:
   workflow_dispatch:

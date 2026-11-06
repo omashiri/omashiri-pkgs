@@ -26,12 +26,12 @@ function fixture(t, count = 1) {
     rest: { pulls: { list: async args => {
       lookup.push(args);
       return { data: groups.map((group, i) => ({
-        number: i + 1, head: { ref: group.branch, repo: { full_name: 'omacom/omarchy-pkgs' } },
+        number: i + 1, head: { ref: group.branch, repo: { full_name: 'omashiri/omashiri-pkgs' } },
       })) };
     } } },
     graphql: async (_, { owner, repo, number }) => {
-      assert.equal(owner, 'omacom');
-      assert.equal(repo, 'omarchy-pkgs');
+      assert.equal(owner, 'omashiri');
+      assert.equal(repo, 'omashiri-pkgs');
       const state = states.get(number);
       if (state instanceof Error) throw state;
       return { repository: { pullRequest: {
@@ -43,7 +43,7 @@ function fixture(t, count = 1) {
   const invoke = (overrides = {}) => {
     results.forEach((result, i) => writeFileSync(join(resultsPath, `${i}.json`), JSON.stringify(result)));
     return summarize({
-      github, context: { repo: { owner: 'omacom', repo: 'omarchy-pkgs' }, runId: 123 },
+      github, context: { repo: { owner: 'omashiri', repo: 'omashiri-pkgs' }, runId: 123 },
       core: {
         warning: message => warnings.push(message),
         setFailed: message => failures.push(message),
@@ -66,7 +66,7 @@ test('10 passing PRs and one failed build leave the sync green and link to the f
   assert.deepEqual(result.checks, { passing: 10, failing: 1, pending: 0, unknown: 0 });
   assert.match(f.outputs.content, /Upstream sync ran successfully/);
   assert.match(f.outputs.content, /PR checks at notification time: 10 passing, 1 failing, 0 pending/);
-  assert.match(f.outputs.content, /href="https:\/\/github.com\/omacom\/omarchy-pkgs\/pull\/11">package-10 #11<\/a>: PR checks failing/);
+  assert.match(f.outputs.content, /href="https:\/\/github.com\/omashiri\/omashiri-pkgs\/pull\/11">package-10 #11<\/a>: PR checks failing/);
   assert.match(f.summary, /<th>PR update<\/th><th>PR checks<\/th>/);
 });
 
@@ -77,8 +77,8 @@ test('a rejected PR push counts as a package failure and finds its existing PR',
   assert.equal(result.succeeded, true);
   assert.deepEqual(result.updates, { passing: 6, failing: 1, unknown: 0 });
   assert.deepEqual(f.failures, []);
-  assert.deepEqual(f.lookup, [{ owner: 'omacom', repo: 'omarchy-pkgs',
-    head: 'omacom:auto/sync-upstream-package-6', state: 'open', per_page: 100 }]);
+  assert.deepEqual(f.lookup, [{ owner: 'omashiri', repo: 'omashiri-pkgs',
+    head: 'omashiri:auto/sync-upstream-package-6', state: 'open', per_page: 100 }]);
   assert.match(result.content, /PR updates: 6 passing, 1 failing/);
   assert.match(result.content, /pull\/7">package-6 #7<\/a>: Could not push or update the PR/);
 });
@@ -154,7 +154,7 @@ test('failure to create a new PR links to the run without inventing a PR', async
   const result = await f.invoke();
   assert.equal(result.succeeded, true);
   assert.equal(result.updates.failing, 1);
-  assert.match(result.content, /no PR link available; <a href="https:\/\/github.com\/omacom\/omarchy-pkgs\/actions\/runs\/123">view run/);
+  assert.match(result.content, /no PR link available; <a href="https:\/\/github.com\/omashiri\/omashiri-pkgs\/actions\/runs\/123">view run/);
   assert.doesNotMatch(result.content, /\/pull\//);
 });
 

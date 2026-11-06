@@ -103,12 +103,12 @@ The builder controller box dispatches both groups on systemd timers
 It uses a personal access token so its PRs trigger builds and its merges trigger
 publishing without manual approval. No GitHub App is required.
 
-1. Use a fine-grained PAT with access to **omacom/omarchy-pkgs** and repository
+1. Use a fine-grained PAT with access to **omashiri/omashiri-pkgs** and repository
    **Contents: Read and write** and **Pull requests: Read and write** permissions.
    Its owner must be trusted by the build workflow (for example, a collaborator).
    The existing controller PAT can be reused when it has these permissions.
 2. In the repository's
-   [Actions secrets](https://github.com/omacom/omarchy-pkgs/settings/secrets/actions),
+   [Actions secrets](https://github.com/omashiri/omashiri-pkgs/settings/secrets/actions),
    save the PAT as `PKGS_BOT_TOKEN`. Update this secret when the token is rotated
    or expires. The built-in Actions `GITHUB_TOKEN` cannot run this unattended chain.
 3. Keep **Allow auto-merge** enabled and require `result`, `self-tests`, and

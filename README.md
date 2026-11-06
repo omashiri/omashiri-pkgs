@@ -1,7 +1,7 @@
 # Omarchy Package Repository
 
 Recipes and tooling for the packages Omarchy ships from
-`https://pkgs.omarchy.org/<channel>/<arch>`.
+`https://pkgs.omashiri.com/<channel>/<arch>`.
 
 - **Channels:** `edge` → `rc` → `stable`. Packages only move forward.
 - **Architectures:** `x86_64` and `aarch64`.
@@ -138,7 +138,7 @@ merge to master
 by hand, from Actions or bin/omarchy-release
   ├─ promote.yml        Promote channel: edge -> rc, rc -> stable
   └─ release-rc.yml     Build release candidate: the rc branch's pins -> rc, edge
-pkgs.omarchy.org        served from the R2 bucket omarchy-pkgs through a CDN
+pkgs.omashiri.com        served from the R2 bucket omarchy-pkgs through a CDN
 ```
 
 To ship a change: open a PR, wait for green, merge. Nothing else is needed.
@@ -244,7 +244,7 @@ Use this when a publish run failed or was cancelled, or a package is missing
 from a channel:
 
 ```bash
-gh workflow run publish.yml -R omacom/omarchy-pkgs -f packages="<package> ..."
+gh workflow run publish.yml -R omashiri/omashiri-pkgs -f packages="<package> ..."
 ```
 
 It publishes `master`'s version of each named package, reusing a build
@@ -264,7 +264,7 @@ For a run that failed, see [When a publish fails](#when-a-publish-fails).
 ### Build a package without publishing
 
 ```bash
-gh workflow run build-pr.yml -R omacom/omarchy-pkgs -f packages="<package> ..."
+gh workflow run build-pr.yml -R omashiri/omashiri-pkgs -f packages="<package> ..."
 
 bin/build --package <package>                  # Locally; needs Docker or Podman
 bin/build --package <package> --arch aarch64   # Emulated on an x86_64 machine
@@ -290,7 +290,7 @@ a local checkout.
 2. Remove it from the channel databases:
 
    ```bash
-   gh workflow run unpublish.yml -R omacom/omarchy-pkgs \
+   gh workflow run unpublish.yml -R omashiri/omashiri-pkgs \
      -f packages="<pkgbase> ..." -f channels="edge rc stable"
    ```
 
@@ -305,9 +305,9 @@ Edge collects every merge; rc and stable move only when someone promotes
 them. Run **Promote channel** from the Actions tab, or:
 
 ```bash
-gh workflow run promote.yml -R omacom/omarchy-pkgs -f direction="edge -> rc"
-gh workflow run promote.yml -R omacom/omarchy-pkgs -f direction="edge -> rc" -f dry_run=true   # plan only
-gh workflow run promote.yml -R omacom/omarchy-pkgs -f direction="rc -> stable" -f packages="<pkgbase> ..."
+gh workflow run promote.yml -R omashiri/omashiri-pkgs -f direction="edge -> rc"
+gh workflow run promote.yml -R omashiri/omashiri-pkgs -f direction="edge -> rc" -f dry_run=true   # plan only
+gh workflow run promote.yml -R omashiri/omashiri-pkgs -f direction="rc -> stable" -f packages="<pkgbase> ..."
 ```
 
 For each architecture, `bin/promote-channel` moves every pkgbase the source
@@ -347,7 +347,7 @@ What each channel serves. A database lists every package as
 
 ```bash
 for channel in edge rc stable; do for arch in x86_64 aarch64; do
-  db=$(curl -fsSL "https://pkgs.omarchy.org/$channel/$arch/omarchy.db?$RANDOM" | bsdtar -tf - 2>/dev/null)
+  db=$(curl -fsSL "https://pkgs.omashiri.com/$channel/$arch/omarchy.db?$RANDOM" | bsdtar -tf - 2>/dev/null)
   if [[ -z $db ]]; then found="COULD NOT READ THE DATABASE"
   else found=$(awk -F/ -v p="<package>" '{n=$1; sub(/-[^-]+-[^-]+$/, "", n)} n==p && $2=="" {print $1}' <<<"$db"); fi
   printf '%-7s %-8s %s\n' "$channel" "$arch" "${found:-not in this channel}"
@@ -362,13 +362,13 @@ split package is not always the recipe directory.
 List a whole channel:
 
 ```bash
-curl -fsSL https://pkgs.omarchy.org/stable/aarch64/omarchy.db | bsdtar -tf - | grep '/$'
+curl -fsSL https://pkgs.omashiri.com/stable/aarch64/omarchy.db | bsdtar -tf - | grep '/$'
 ```
 
 ### Read the publish log
 
 Every run that writes a channel (publish, promotion, release candidate)
-appends one JSON line to `https://pkgs.omarchy.org/publish-log.jsonl` when it
+appends one JSON line to `https://pkgs.omashiri.com/publish-log.jsonl` when it
 finishes, newest last. A plan-only run writes nothing there.
 A rerun adds another line for the same run. The log records finished runs;
 for a cancelled one, [check the channel](#check-that-a-version-is-live).
@@ -417,7 +417,7 @@ and, besides the common fields and `slots`: `pkgver` (the pinned version),
 `sources` is always empty on both kinds.
 
 ```bash
-log=https://pkgs.omarchy.org/publish-log.jsonl
+log=https://pkgs.omashiri.com/publish-log.jsonl
 
 # The last five runs
 curl -fsSL $log | tail -5 |
@@ -446,9 +446,9 @@ written, for every package in that merge.
 Find the run and read the failure:
 
 ```bash
-gh run list -R omacom/omarchy-pkgs --workflow publish.yml --limit 10
-gh run view <run-id> -R omacom/omarchy-pkgs                # Which job failed
-gh run view <run-id> -R omacom/omarchy-pkgs --log-failed   # Its log
+gh run list -R omashiri/omashiri-pkgs --workflow publish.yml --limit 10
+gh run view <run-id> -R omashiri/omashiri-pkgs                # Which job failed
+gh run view <run-id> -R omashiri/omashiri-pkgs --log-failed   # Its log
 ```
 
 Then act on which job failed:
@@ -498,7 +498,7 @@ Builds cost machines, so `build-pr.yml` runs them only for trusted authors:
 - repository collaborators and bots
 - authors listed in `.github/VOUCHED.td`
 - any PR a maintainer labels `build-approved` (that PR only, including later
-  commits): `gh pr edit <number> -R omacom/omarchy-pkgs --add-label build-approved`
+  commits): `gh pr edit <number> -R omashiri/omashiri-pkgs --add-label build-approved`
 
 `VOUCHED.td` takes one `github:<username>` per line; `-github:<username>
 <reason>` denounces an author.

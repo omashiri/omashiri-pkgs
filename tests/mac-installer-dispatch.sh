@@ -27,7 +27,7 @@ fi
 STUB
 chmod +x "$T/bin/curl"
 export PATH="$T/bin:$PATH" STUB_DIR=$T
-export GITHUB_REPOSITORY=omacom/omarchy-pkgs GITHUB_SHA=abc123 GITHUB_RUN_ID=42 GITHUB_SERVER_URL=https://github.com
+export GITHUB_REPOSITORY=omashiri/omashiri-pkgs GITHUB_SHA=abc123 GITHUB_RUN_ID=42 GITHUB_SERVER_URL=https://github.com
 DB_SHA=$(printf 'edge database bytes' | sha256sum | cut -d' ' -f1)
 
 record() { # target, then slot JSON objects
@@ -54,7 +54,7 @@ out=$(run --dry-run)
   && pass "the payload names its schema, channel and architecture" || fail "header: $out"
 [[ $(jq -r .database_sha256 <<<"$out") == "$DB_SHA" ]] \
   && pass "the edge database's sha256 is included" || fail "database: $out"
-[[ $(jq -c .source <<<"$out") == '{"repository":"omacom/omarchy-pkgs","commit":"abc123","run":"https://github.com/omacom/omarchy-pkgs/actions/runs/42"}' ]] \
+[[ $(jq -c .source <<<"$out") == '{"repository":"omashiri/omashiri-pkgs","commit":"abc123","run":"https://github.com/omashiri/omashiri-pkgs/actions/runs/42"}' ]] \
   && pass "the payload names the commit and run that published" || fail "source: $out"
 [[ ! -e $T/post-args ]] && pass "a dry run sends nothing" || fail "dry run posted"
 grep -qE '^https://pkgs\.omarchy\.org/edge/aarch64/omarchy\.db\?[0-9]+$' "$T/get-args" && grep -qx 'Cache-Control: no-cache' "$T/get-args" \

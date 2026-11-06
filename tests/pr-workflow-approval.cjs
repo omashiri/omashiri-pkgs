@@ -25,7 +25,7 @@ const run = (id, path, overrides = {}) => ({
 
 function fixture(initial = [run(1, TESTS, { created_at: earlier }), run(2, BUILD)], options = {}) {
   const state = { pr: clone(pr), runs: clone(initial), approved: [], reads: 0, tick: 0, transitions: [] };
-  const repo = { owner: 'omacom', repo: 'omarchy-pkgs' };
+  const repo = { owner: 'omashiri', repo: 'omashiri-pkgs' };
   const github = {
     rest: {
       pulls: { get: async args => {
@@ -199,7 +199,7 @@ test('reopening a labeled PR waits for its new tests, even if old tests passed a
   const { state, invoke } = fixture([
     run(1, TESTS, { created_at: earlier, conclusion: 'success' }), run(2, BUILD),
   ], { onSleep(state) { if (state.tick === 2) state.runs.push(run(3, TESTS)); } });
-  await invoke({ context: { repo: { owner: 'omacom', repo: 'omarchy-pkgs' },
+  await invoke({ context: { repo: { owner: 'omashiri', repo: 'omashiri-pkgs' },
     payload: { action: 'reopened', pull_request: clone(pr) } } });
   assert.deepEqual(state.approved, [2, 3]);
 });
@@ -327,15 +327,15 @@ for (const [name, overrides] of [
 test('only same-repository sync branches queue behind an in-flight build', () => {
   const expression = workflow.match(/^  cancel-in-progress: \$\{\{(.*)\}\}$/m)[1];
   const cancels = (repo, ref) => new Function('github', 'startsWith', `return (${expression})`)(
-    { repository: 'omacom/omarchy-pkgs', head_ref: ref,
+    { repository: 'omashiri/omashiri-pkgs', head_ref: ref,
       event: { pull_request: { head: { repo: { full_name: repo } } } } },
     (text, prefix) => text.startsWith(prefix));
-  assert.equal(cancels('omacom/omarchy-pkgs', 'auto/sync-upstream'), false);
-  assert.equal(cancels('omacom/omarchy-pkgs', 'auto/sync-upstream-ttfx'), false);
-  assert.equal(cancels('omacom/omarchy-pkgs', 'auto/sync-rebuilds'), false);
-  assert.equal(cancels('omacom/omarchy-pkgs', 'auto/track-branches-omarchy-dev-omarchy-settings-dev'), false);
-  assert.equal(cancels('omacom/omarchy-pkgs', 'ttfx/fix'), true);
-  assert.equal(cancels('someone/omarchy-pkgs', 'auto/sync-upstream'), true);
+  assert.equal(cancels('omashiri/omashiri-pkgs', 'auto/sync-upstream'), false);
+  assert.equal(cancels('omashiri/omashiri-pkgs', 'auto/sync-upstream-ttfx'), false);
+  assert.equal(cancels('omashiri/omashiri-pkgs', 'auto/sync-rebuilds'), false);
+  assert.equal(cancels('omashiri/omashiri-pkgs', 'auto/track-branches-omarchy-dev-omarchy-settings-dev'), false);
+  assert.equal(cancels('omashiri/omashiri-pkgs', 'ttfx/fix'), true);
+  assert.equal(cancels('someone/omashiri-pkgs', 'auto/sync-upstream'), true);
   assert.equal(cancels(undefined, ''), true); // workflow_dispatch
 });
 
@@ -426,7 +426,7 @@ test('package PRs split per package and keep branch siblings together', () => {
 });
 
 const { decide } = require('../.github/scripts/auto-merge-pr.cjs');
-const repository = 'omacom/omarchy-pkgs';
+const repository = 'omashiri/omashiri-pkgs';
 const mergeable = (overrides = {}) => ({
   state: 'open', draft: false, labels: [],
   head: { ref: 'superwhisper-bin', repo: { full_name: repository } }, ...overrides,
