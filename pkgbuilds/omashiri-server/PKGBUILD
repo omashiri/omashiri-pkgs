@@ -8,8 +8,8 @@ license=('MIT')
 depends=(
   base linux-firmware intel-ucode amd-ucode
   btrfs-progs snapper limine mkinitcpio dosfstools cryptsetup
-  sudo omashiri-ssh
-  chrony networkmanager nftables ufw fail2ban
+  sudo omashiri-ssh omashiri-firewall
+  chrony networkmanager ufw fail2ban
   git vim tmux htop btop rsync curl wget jq man-db lsof strace
   ethtool iperf3 mtr nvme-cli smartmontools logrotate pacman-contrib
 )
