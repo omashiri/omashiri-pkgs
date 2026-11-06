@@ -1,0 +1,17 @@
+pkgname=omashiri-remote-unlock
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Optional SSH unlock of an encrypted root from the initramfs'
+arch=('any')
+url='https://github.com/omashiri/omashiri'
+license=('MIT')
+depends=(dropbear mkinitcpio-dropbear mkinitcpio-netconf mkinitcpio-utils)
+source=('50-omashiri-remote-unlock.conf' 'README')
+sha256sums=('15b110477a242a7a1b72194df8f4353e26a05832e3d3ec5af8f576a815c554f6'
+            '9e4d4ab7b15f943cf76c77d4449f425b7ffe4c1b72b8d6b68ac48d2299aa028b')
+
+package() {
+  install -Dm644 50-omashiri-remote-unlock.conf \
+    "$pkgdir/etc/mkinitcpio.conf.d/50-omashiri-remote-unlock.conf"
+  install -Dm644 README "$pkgdir/usr/share/doc/$pkgname/README"
+}
