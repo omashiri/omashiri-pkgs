@@ -30,6 +30,8 @@ Add one with `bin/add-package <name> --local --scaffold`. Build locally with
 
 Checks: `tests/*.sh`, also run by `.github/workflows/test.yml` on pull requests.
 
+`omashiri-settings` installs the Omashiri login banner and an interactive profile hook. It shows host, kernel, uptime, resource, GPU (when available), and failed-service information. Create `~/.hushlogin` to disable it. Noninteractive SSH commands and file transfers remain silent; the packaged static `/etc/motd` is empty to avoid a second banner.
+
 ## Publishing
 
 `.github/workflows/publish-server.yml` runs on pushes to `main` that touch
