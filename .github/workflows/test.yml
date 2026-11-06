@@ -88,12 +88,13 @@ jobs:
             -w /workspace \
             ghcr.io/archlinux/archlinux:base-devel bash -lc '
               set -euo pipefail
-              pacman -Syu --noconfirm git jq libarchive
+              pacman -Syu --noconfirm git jq libarchive python
               ./tests/pinned-sources.sh
               ./tests/package-metadata.sh
               ./tests/package-owners.sh
               ./tests/pkgname-unique.sh
               ./tests/limine-mkinitcpio-hook.sh
+              ./tests/motd.sh
               shopt -s nullglob
               for test in pkgbuilds/*/test.sh; do
                 bash "$test"
