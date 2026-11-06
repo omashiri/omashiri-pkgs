@@ -1,0 +1,15 @@
+pkgname=omashiri-ssh
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='OpenSSH server with key-only login, enabled at install'
+arch=('any')
+url='https://github.com/omashiri/omashiri'
+license=('MIT')
+depends=('openssh')
+install=$pkgname.install
+source=('10-omashiri.conf')
+sha256sums=('a2b9d0a32938727259221c63a5d7c0e90035433be2afcfbd0c95f398857371e8')
+
+package() {
+  install -Dm644 10-omashiri.conf "$pkgdir/etc/ssh/sshd_config.d/10-omashiri.conf"
+}

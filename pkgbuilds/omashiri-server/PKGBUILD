@@ -1,0 +1,19 @@
+pkgname=omashiri-server
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Omashiri headless server base: pulls in the Arch packages the image ships'
+arch=('any')
+url='https://github.com/omashiri/omashiri'
+license=('MIT')
+depends=(
+  base linux-firmware intel-ucode amd-ucode
+  btrfs-progs snapper limine mkinitcpio dosfstools cryptsetup
+  sudo omashiri-ssh
+  chrony networkmanager nftables ufw fail2ban
+  git vim tmux htop btop rsync curl wget jq man-db lsof strace
+  ethtool iperf3 mtr nvme-cli smartmontools logrotate pacman-contrib
+)
+
+package() {
+  :
+}
