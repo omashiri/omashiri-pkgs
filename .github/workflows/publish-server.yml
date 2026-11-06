@@ -1,4 +1,4 @@
-name: Publish to GitHub release
+name: Publish to pkg.omashiri.com
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency: publish-release
 
@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Install tools
         run: |
-          pacman -Syu --noconfirm git github-cli sudo
+          pacman -Syu --noconfirm git sudo rsync openssh
           useradd -m builder
           echo 'builder ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder
       - uses: actions/checkout@v4
@@ -45,10 +45,15 @@ jobs:
           repo-add "${sign[@]}" omashiri.db.tar.zst *.pkg.tar.zst
           cp -L omashiri.db.tar.zst omashiri.db
           cp -L omashiri.files.tar.zst omashiri.files
-      - name: Replace edge release assets
+      - name: Upload to server
         env:
-          GH_TOKEN: ${{ github.token }}
+          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_TARGET: ${{ secrets.DEPLOY_TARGET }}
         run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          gh release delete edge --cleanup-tag --yes -R "$GITHUB_REPOSITORY" || true
-          gh release create edge --prerelease -t edge -n "Rolling package repo" /tmp/repo/* -R "$GITHUB_REPOSITORY"
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh_cmd="ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes"
+          rsync -e "$ssh_cmd" -a --exclude 'omashiri.db*' --exclude 'omashiri.files*' /tmp/repo/ "$DEPLOY_TARGET/"
+          rsync -e "$ssh_cmd" -a /tmp/repo/omashiri.db* /tmp/repo/omashiri.files* "$DEPLOY_TARGET/"

@@ -666,14 +666,31 @@ Repository secrets: `PKGS_BOT_TOKEN`, `BASECAMP_CHATBOT_URL`.
 
 ## Using the omashiri repo
 
-Packages are published as assets of the rolling `edge` release by
-`.github/workflows/publish-release.yml`. Add to `/etc/pacman.conf`:
+`.github/workflows/publish-server.yml` builds the packages and rsyncs them to
+the server that serves `https://pkg.omashiri.com/x86_64/`. Add to
+`/etc/pacman.conf`:
 
 ```
 [omashiri]
 SigLevel = Optional TrustAll
-Server = https://github.com/omashiri/omashiri-pkgs/releases/download/edge
+Server = https://pkg.omashiri.com/$arch
 ```
 
-Set `SigLevel = Required` once the `GPG_PRIVATE_KEY` secret is set and the
-matching public key is shipped in an `omashiri-keyring` package.
+Set `SigLevel = Required` once `GPG_PRIVATE_KEY` is set and the public key is
+shipped in an `omashiri-keyring` package.
+
+### Server setup
+
+```
+useradd -m -d /srv/pkg pkg && install -d -o pkg /srv/pkg/x86_64
+# /etc/caddy/Caddyfile
+pkg.omashiri.com {
+    root * /srv/pkg
+    file_server browse
+}
+```
+
+Repo secrets: `DEPLOY_SSH_KEY` (private key whose public half is in
+`~pkg/.ssh/authorized_keys`), `DEPLOY_KNOWN_HOSTS` (output of
+`ssh-keyscan <host>`), `DEPLOY_TARGET` (`pkg@<host>:/srv/pkg/x86_64`),
+and optionally `GPG_PRIVATE_KEY`.
