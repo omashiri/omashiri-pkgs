@@ -9,51 +9,23 @@ on:
 permissions:
   contents: read
 
-concurrency: publish-release
+concurrency: publish-server
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
-    container: archlinux:base-devel
+    runs-on: [self-hosted, linux]
     steps:
-      - name: Install tools
-        run: |
-          pacman -Syu --noconfirm git sudo rsync openssh
-          useradd -m builder
-          echo 'builder ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder
       - uses: actions/checkout@v4
       - name: Build packages
         run: |
-          chown -R builder: .
-          mkdir -p /tmp/repo
+          out=$(mktemp -d)
+          echo "OUT=$out" >> "$GITHUB_ENV"
           for dir in pkgbuilds/*/; do
             grep -qE "^arch=.*(x86_64|any)" "$dir/PKGBUILD" || continue
-            (cd "$dir" && sudo -u builder env PKGDEST=/tmp/repo makepkg -sfc --noconfirm --skippgpcheck)
+            (cd "$dir" && PKGDEST="$out" makepkg -sfc --noconfirm --skippgpcheck)
           done
-      - name: Sign and index
+      - name: Sign and publish
         env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-        run: |
-          cd /tmp/repo
-          sign=()
-          if [ -n "$GPG_PRIVATE_KEY" ]; then
-            printf '%s' "$GPG_PRIVATE_KEY" | gpg --batch --import
-            key=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr/{print $10; exit}')
-            for f in *.pkg.tar.*; do gpg --batch --detach-sign --use-agent -u "$key" "$f"; done
-            sign=(--sign --key "$key")
-          fi
-          repo-add "${sign[@]}" omashiri.db.tar.zst *.pkg.tar.zst
-          cp -L omashiri.db.tar.zst omashiri.db
-          cp -L omashiri.files.tar.zst omashiri.files
-      - name: Upload to server
-        env:
-          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-          DEPLOY_TARGET: ${{ secrets.DEPLOY_TARGET }}
-        run: |
-          install -d -m 700 ~/.ssh
-          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
-          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          ssh_cmd="ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes"
-          rsync -e "$ssh_cmd" -a --exclude 'omashiri.db*' --exclude 'omashiri.files*' /tmp/repo/ "$DEPLOY_TARGET/"
-          rsync -e "$ssh_cmd" -a /tmp/repo/omashiri.db* /tmp/repo/omashiri.files* "$DEPLOY_TARGET/"
+          REMOTE: ${{ vars.PKG_REMOTE }}
+          GPG_KEY_ID: ${{ vars.GPG_KEY_ID }}
+        run: scripts/publish.sh "$OUT"

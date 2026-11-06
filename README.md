@@ -12,12 +12,12 @@ Add to `/etc/pacman.conf`:
 
 ```
 [omashiri]
-SigLevel = Optional TrustAll
-Server = https://pkg.omashiri.com/$arch
+SigLevel = Required
+Server = https://pkg.omashiri.com/$repo/os/$arch
 ```
 
-Use `SigLevel = Required` once `GPG_PRIVATE_KEY` is set and the public key ships
-in an `omashiri-keyring` package.
+The public key must be trusted first (`pacman-key`), eventually via an
+`omashiri-keyring` package.
 
 ## Packages
 
@@ -32,18 +32,15 @@ Checks: `tests/*.sh`, also run by `.github/workflows/test.yml` on pull requests.
 
 ## Publishing
 
-`.github/workflows/publish-server.yml` runs on pushes to `main` that touch
-`pkgbuilds/`. It builds every x86_64 or `any` package, signs if `GPG_PRIVATE_KEY`
-is set, runs `repo-add`, and rsyncs to the server.
+`.github/workflows/publish-server.yml` runs on a self-hosted Linux runner
+(Arch, with `base-devel`, `rsync` and the signing key in its GPG keyring) on
+pushes to `main` that touch `pkgbuilds/`. It builds every x86_64 or `any`
+package and calls `scripts/publish.sh`, which signs the packages, updates and
+signs the db, and uploads packages before the db.
 
-Server: a `pkg` user owning `/srv/pkg/x86_64`, and a Caddy site
+Repo variables: `PKG_REMOTE` (for example
+`pkgdeploy@host:/srv/omashiri-repo/omashiri/os/x86_64`, or a local path if the
+runner is the server) and `GPG_KEY_ID`.
 
-```
-pkg.omashiri.com {
-    root * /srv/pkg
-    file_server browse
-}
-```
-
-Repo secrets: `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS` (`ssh-keyscan <host>`),
-`DEPLOY_TARGET` (`pkg@<host>:/srv/pkg/x86_64`), optional `GPG_PRIVATE_KEY`.
+Serve `/srv/omashiri-repo` as `pkg.omashiri.com` with any static file server,
+for example Caddy `file_server`.
