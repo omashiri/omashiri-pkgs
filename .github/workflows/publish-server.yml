@@ -30,7 +30,8 @@ jobs:
           chown -R builder .
           for d in pkgbuilds/*/; do
             grep -qE '^arch=.*(x86_64|any)' "$d/PKGBUILD" || continue
-            (cd "$d" && sudo -u builder env PKGDEST=/out makepkg -s --noconfirm --clean --skippgpcheck)
+            deps=-s; grep -q '^makedepends' "$d/PKGBUILD" || deps=-d
+            (cd "$d" && sudo -u builder env PKGDEST=/out makepkg $deps --noconfirm --clean --skippgpcheck)
           done
 
       - name: Publish
