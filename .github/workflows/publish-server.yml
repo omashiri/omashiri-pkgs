@@ -35,7 +35,7 @@ jobs:
 
       - name: Publish
         env:
-          REMOTE: ${{ vars.PKG_REMOTE }}
+          SERVER: ${{ secrets.REMOTE }}
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
@@ -43,6 +43,6 @@ jobs:
           printf '%s\n' "$GPG_SIGNING_KEY" | gpg --batch --import
           install -d -m 700 ~/.ssh
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
-          host=${REMOTE#*@}; host=${host%%:*}
-          ssh-keyscan "$host" >> ~/.ssh/known_hosts
+          ssh-keyscan "$SERVER" >> ~/.ssh/known_hosts
+          export REMOTE="pkgdeploy@$SERVER:/srv/omashiri-repo/omashiri/os/x86_64"
           scripts/publish.sh /out
