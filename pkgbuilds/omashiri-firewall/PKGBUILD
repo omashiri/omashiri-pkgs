@@ -1,0 +1,15 @@
+pkgname=omashiri-firewall
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Default firewall policy: ufw denies incoming except ssh, fail2ban sshd jail'
+arch=('any')
+url='https://github.com/omashiri/omashiri'
+license=('MIT')
+depends=('ufw' 'fail2ban')
+install=$pkgname.install
+source=('jail.local')
+sha256sums=('6088fa76079cd2193bbbd557c2c20aacbccbdaa90cae60ac28bd66c7d85d16ec')
+
+package() {
+  install -Dm644 jail.local "$pkgdir/etc/fail2ban/jail.d/10-omashiri.local"
+}
